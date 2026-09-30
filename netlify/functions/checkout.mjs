@@ -2,7 +2,7 @@ export const handler = async (event) => {
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
   const reply = (statusCode, body) => ({ statusCode, headers, body: JSON.stringify(body) });
   if (event.httpMethod !== 'POST') return reply(405, { error: 'Méthode non autorisée.' });
-  const key = process.env.STRIPE_SECRET_KEY;
+  const key = process.env.STRIPE_SECRET_KEY || process.env.stripe;
   const origin = process.env.SITE_URL || process.env.URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined);
   if (!key || !origin || !process.env.FITMEL_EBOOK_KEY) return reply(503, { error: 'Le paiement de l’ebook sera bientôt disponible. Reviens ici prochainement.' });
   try {
