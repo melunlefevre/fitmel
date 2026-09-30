@@ -2,7 +2,7 @@ export const handler = async (event) => {
   const headers = { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' };
   const reply = (statusCode, body) => ({ statusCode, headers, body: JSON.stringify(body) });
   if (event.httpMethod !== 'POST') return reply(405, { error: 'Méthode non autorisée.' });
-  const key = process.env.STRIPE_SECRET_KEY || process.env.stripe;
+  const key = (process.env.STRIPE_SECRET_KEY || process.env.stripe || '').trim();
   const origin = process.env.SITE_URL || process.env.URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : undefined);
   if (!key || !origin || !process.env.FITMEL_EBOOK_KEY) return reply(503, { error: 'Le paiement de l’ebook sera bientôt disponible. Reviens ici prochainement.' });
   try {
@@ -22,9 +22,13 @@ export const handler = async (event) => {
       method: 'POST', headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body: params
     });
     const session = await result.json();
-    if (!result.ok || !session.url) throw new Error('Checkout failed');
+    if (!result.ok || !session.url) {
+      console.error('FITMEL_CHECKOUT_STRIPE', { status: result.status, type: session.error?.type || 'unknown', code: session.error?.code || 'unknown' });
+      throw new Error('Checkout failed');
+    }
     return reply(200, { url: session.url });
-  } catch {
+  } catch (error) {
+    console.error('FITMEL_CHECKOUT_FAILURE', { kind: error instanceof TypeError ? 'configuration_or_network' : 'stripe_response' });
     return reply(502, { error: 'Le paiement est momentanément indisponible. Réessaie dans quelques instants.' });
   }
 };
