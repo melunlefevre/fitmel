@@ -1,0 +1,16 @@
+[build]
+  command = "node scripts/build.mjs"
+  publish = "dist"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[functions.ebook]
+  included_files = ["netlify/functions/ebook-content.enc"]
+
+[[redirects]]
+  from = "/ebook"
+  to = "/.netlify/functions/ebook"
+  status = 200
+  force = true

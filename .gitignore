@@ -1,0 +1,4 @@
+dist/
+.env
+.netlify/
+netlify/functions/ebook-content.html

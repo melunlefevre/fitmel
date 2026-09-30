@@ -1,0 +1,14 @@
+{
+  "buildCommand": "node scripts/build.mjs",
+  "outputDirectory": "dist",
+  "framework": null,
+  "functions": {
+    "api/ebook.mjs": {
+      "includeFiles": "netlify/functions/ebook-content.enc"
+    }
+  },
+  "rewrites": [
+    { "source": "/ebook", "destination": "/api/ebook" },
+    { "source": "/.netlify/functions/checkout", "destination": "/api/checkout" }
+  ]
+}
