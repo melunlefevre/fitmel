@@ -6,9 +6,10 @@ export const handler = async (event) => {
   if (event.httpMethod !== 'GET') return unavailable(405, 'Méthode non autorisée.');
   const id = event.queryStringParameters?.session_id;
   if (!id || !/^cs_(test_|live_)?[a-zA-Z0-9]+$/.test(id)) return unavailable(403, 'La lecture de l’ebook est réservée aux acheteurs. Après ton paiement, Stripe te redirige vers ton guide.');
-  if (!process.env.STRIPE_SECRET_KEY || !process.env.FITMEL_EBOOK_KEY) return unavailable(503, 'La vérification du paiement est momentanément indisponible. Conserve ton lien et réessaie plus tard.');
+  const key = process.env.STRIPE_SECRET_KEY || process.env.stripe;
+  if (!key || !process.env.FITMEL_EBOOK_KEY) return unavailable(503, 'La vérification du paiement est momentanément indisponible. Conserve ton lien et réessaie plus tard.');
   try {
-    const result = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}` } });
+    const result = await fetch(`https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${key}` } });
     if (!result.ok) return unavailable(403, 'Ce lien d’accès n’a pas pu être validé.');
     const session = await result.json();
     if (session.payment_status !== 'paid' || session.mode !== 'payment' || session.currency !== 'eur' || session.amount_total !== 2500 || session.metadata?.fitmel_offer !== 'ebook_v1') return unavailable(403, 'Le paiement de cet ebook n’est pas confirmé. Si tu viens de payer, recharge cette page dans quelques instants.');
